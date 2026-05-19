@@ -1,0 +1,6 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body, #app { height: 100%; font-family: 'Helvetica Neue', Arial, sans-serif; }
+body.dark { background: #1a1a2e; color: #e0e0e0; }
+body.dark .el-card { background: #16213e; border-color: #0f3460; color: #e0e0e0; }
+body.dark .el-dialog { background: #16213e; }
+body.dark .el-input__inner { background: #0f3460; border-color: #533483; color: #e0e0e0; }
