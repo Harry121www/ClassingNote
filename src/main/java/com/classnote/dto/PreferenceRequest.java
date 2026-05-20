@@ -5,6 +5,7 @@ public class PreferenceRequest {
     private Integer autoSaveInterval;
     private Integer editorFontSize;
     private String attachmentRootPath;
+    private String dataPath;
 
     public String getTheme() { return theme; }
     public void setTheme(String theme) { this.theme = theme; }
@@ -14,4 +15,6 @@ public class PreferenceRequest {
     public void setEditorFontSize(Integer editorFontSize) { this.editorFontSize = editorFontSize; }
     public String getAttachmentRootPath() { return attachmentRootPath; }
     public void setAttachmentRootPath(String attachmentRootPath) { this.attachmentRootPath = attachmentRootPath; }
+    public String getDataPath() { return dataPath; }
+    public void setDataPath(String dataPath) { this.dataPath = dataPath; }
 }

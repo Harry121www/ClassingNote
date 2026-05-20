@@ -22,6 +22,9 @@ public class UserPreference {
     @Column(length = 500)
     private String attachmentRootPath;
 
+    @Column(length = 500)
+    private String dataPath;
+
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getTheme() { return theme; }
@@ -32,4 +35,6 @@ public class UserPreference {
     public void setEditorFontSize(Integer editorFontSize) { this.editorFontSize = editorFontSize; }
     public String getAttachmentRootPath() { return attachmentRootPath; }
     public void setAttachmentRootPath(String attachmentRootPath) { this.attachmentRootPath = attachmentRootPath; }
+    public String getDataPath() { return dataPath; }
+    public void setDataPath(String dataPath) { this.dataPath = dataPath; }
 }

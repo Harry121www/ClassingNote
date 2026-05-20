@@ -2,15 +2,17 @@
   <div class="settings-view">
     <h3>设置</h3>
     <LLMSettings />
+    <DataSettings />
   </div>
 </template>
 
 <script>
 import LLMSettings from '../components/LLMSettings.vue'
+import DataSettings from '../components/DataSettings.vue'
 
 export default {
   name: 'SettingsView',
-  components: { LLMSettings }
+  components: { LLMSettings, DataSettings }
 }
 </script>
 

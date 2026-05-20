@@ -24,6 +24,7 @@ public class PreferenceService {
         if (req.getAutoSaveInterval() != null) pref.setAutoSaveInterval(req.getAutoSaveInterval());
         if (req.getEditorFontSize() != null) pref.setEditorFontSize(req.getEditorFontSize());
         if (req.getAttachmentRootPath() != null) pref.setAttachmentRootPath(req.getAttachmentRootPath());
+        if (req.getDataPath() != null) pref.setDataPath(req.getDataPath());
         return prefRepo.save(pref);
     }
 }
