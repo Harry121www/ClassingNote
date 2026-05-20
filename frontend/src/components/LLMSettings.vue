@@ -14,7 +14,9 @@
       </el-form-item>
       <el-form-item label="API Key">
         <el-input v-model="form.apiKey" type="password" show-password
-          :placeholder="savedKeyMasked ? '已保存 (' + savedKeyMasked + ')，留空不修改' : 'sk-...'" />
+          placeholder="sk-..."
+          @focus="onApiKeyFocus"
+          @blur="onApiKeyBlur" />
       </el-form-item>
       <el-form-item label="Base URL">
         <el-input v-model="form.baseUrl" placeholder="可选，留空使用默认" />
@@ -39,7 +41,8 @@ export default {
   name: 'LLMSettings',
   setup() {
     const form = ref({ provider: 'OPENAI', apiKey: '', baseUrl: '', model: 'gpt-4o' })
-    const savedKeyMasked = ref('')
+    const maskedKey = ref('')
+    const keyEdited = ref(false)
     const saving = ref(false)
     const saved = ref(false)
 
@@ -51,12 +54,27 @@ export default {
         form.value.baseUrl = data.baseUrl || ''
         form.value.model = data.model
         if (data.apiKey && data.apiKey !== '****') {
-          savedKeyMasked.value = data.apiKey
+          maskedKey.value = data.apiKey
+          form.value.apiKey = data.apiKey
         }
       } catch (e) {
         // use defaults
       }
     })
+
+    function onApiKeyFocus() {
+      if (!keyEdited.value && maskedKey.value) {
+        form.value.apiKey = ''
+        keyEdited.value = true
+      }
+    }
+
+    function onApiKeyBlur() {
+      if (form.value.apiKey === '' && maskedKey.value && keyEdited.value) {
+        form.value.apiKey = maskedKey.value
+        keyEdited.value = false
+      }
+    }
 
     async function save() {
       saving.value = true
@@ -64,16 +82,16 @@ export default {
       try {
         const body = {
           provider: form.value.provider,
-          apiKey: form.value.apiKey || undefined,
+          apiKey: keyEdited.value ? (form.value.apiKey || undefined) : undefined,
           baseUrl: form.value.baseUrl || undefined,
           model: form.value.model
         }
         const res = await llmApi.updateConfig(body)
-        // update masked key display
         if (res.data && res.data.apiKey) {
-          savedKeyMasked.value = res.data.apiKey
+          maskedKey.value = res.data.apiKey
+          form.value.apiKey = res.data.apiKey
+          keyEdited.value = false
         }
-        form.value.apiKey = ''
         saved.value = true
         ElMessage.success('配置已保存')
       } catch (e) {
@@ -83,7 +101,7 @@ export default {
       }
     }
 
-    return { form, savedKeyMasked, saving, saved, save }
+    return { form, maskedKey, keyEdited, saving, saved, onApiKeyFocus, onApiKeyBlur, save }
   }
 }
 </script>
