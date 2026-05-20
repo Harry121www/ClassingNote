@@ -1,14 +1,20 @@
 @echo off
 title ClassNote
-echo Starting ClassNote...
-echo.
-echo 数据存储在: %USERPROFILE%\.classnote
-echo 附件存储在: %USERPROFILE%\classnote-files
-echo.
-echo 浏览器打开 http://localhost:8080 即可使用
-echo.
-echo 按 Ctrl+C 停止服务
+chcp 65001 >nul
 
-java -jar "%~dp0ClassNote.jar" --spring.profiles.active=h2
+set JAR=%~dp0ClassNote.jar
+if not exist "%JAR%" set JAR=%~dp0..\target\classnote-local-1.0.0.jar
+
+if not exist "%JAR%" (
+    echo JAR not found. Run package.bat first.
+    pause
+    exit /b 1
+)
+
+echo Starting ClassNote...
+echo URL: http://localhost:8080
+echo.
+
+java -jar "%JAR%" --spring.profiles.active=h2
 
 pause
