@@ -26,7 +26,10 @@
       </el-table-column>
     </el-table>
 
-    <div v-if="selectedIds.length" style="padding:8px 0;">
+    <div v-if="selectedIds.length" style="padding:8px 0; display:flex; gap:8px;">
+      <el-button type="primary" size="small" @click="startSummary">
+        生成阶段总结 ({{ selectedIds.length }})
+      </el-button>
       <el-button type="danger" size="small" @click="batchDelete">
         批量删除 ({{ selectedIds.length }})
       </el-button>
@@ -35,14 +38,29 @@
     <el-pagination v-if="noteStore.total > 0" style="margin-top:16px; justify-content:center;"
       :current-page="page" :page-size="size" :total="noteStore.total"
       layout="prev, pager, next" @current-change="onPageChange" />
+
+    <el-dialog v-model="summaryVisible" title="阶段总结" width="700px" :close-on-click-modal="false">
+      <div v-if="summarizing" style="text-align:center; padding:20px;">
+        <el-progress :percentage="summaryProgress" :stroke-width="6" />
+        <p style="margin-top:12px; color:var(--text-secondary);">正在生成阶段总结…</p>
+      </div>
+      <div v-if="summaryContent" v-html="renderedSummary" class="summary-content"></div>
+      <div v-if="summaryError" style="color:red;">{{ summaryError }}</div>
+      <template #footer v-if="!summarizing">
+        <el-button @click="summaryVisible = false">关闭</el-button>
+        <el-button type="primary" @click="saveSummary" :disabled="!summaryContent">存为新笔记</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { ElMessageBox } from 'element-plus'
+import { ElMessageBox, ElMessage } from 'element-plus'
 import { useNoteStore } from '../stores/note'
+import { noteApi } from '../api/notes'
+import { marked } from 'marked'
 
 export default {
   name: 'NoteList',
@@ -82,12 +100,96 @@ export default {
       } catch (e) { /* cancelled */ }
     }
 
+    const summaryVisible = ref(false)
+    const summarizing = ref(false)
+    const summaryContent = ref('')
+    const summaryError = ref('')
+    const summaryProgress = ref(0)
+    const renderedSummary = computed(() => summaryContent.value ? marked.parse(summaryContent.value) : '')
+
+    const startSummary = async () => {
+      summaryVisible.value = true
+      summarizing.value = true
+      summaryContent.value = ''
+      summaryError.value = ''
+      summaryProgress.value = 10
+
+      try {
+        const r = await fetch('/api/v1/notes/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ noteIds: selectedIds.value })
+        })
+        if (!r.ok) throw new Error('请求失败: ' + r.statusText)
+
+        const reader = r.body.getReader()
+        const decoder = new TextDecoder()
+        let buffer = ''
+
+        while (true) {
+          const { done, value } = await reader.read()
+          if (done) break
+          buffer += decoder.decode(value, { stream: true })
+          const lines = buffer.split('\n')
+          buffer = lines.pop() || ''
+          for (const line of lines) {
+            if (line.startsWith('event:analysis')) continue
+            if (line.startsWith('data:')) {
+              try {
+                const event = JSON.parse(line.substring(5).trim())
+                if (event.phase === 'ERROR') {
+                  summaryError.value = event.content
+                } else if (event.phase === 'DONE') {
+                  summaryProgress.value = 100
+                } else {
+                  summaryContent.value += event.content || ''
+                  summaryProgress.value = 50
+                }
+              } catch (e) { /* skip */ }
+            }
+          }
+        }
+      } catch (e) {
+        summaryError.value = e.message || '总结失败'
+      } finally {
+        summarizing.value = false
+      }
+    }
+
+    const saveSummary = async () => {
+      try {
+        const title = '阶段总结 - ' + new Date().toLocaleDateString('zh-CN')
+        await noteApi.create({ title, content: summaryContent.value, notebookId: props.notebookId || undefined })
+        ElMessage.success('已保存为笔记')
+        summaryVisible.value = false
+        summaryContent.value = ''
+        load()
+      } catch (e) {
+        ElMessage.error('保存失败')
+      }
+    }
+
     const formatDate = (d) => d ? new Date(d).toLocaleString('zh-CN') : ''
 
     watch(() => [props.notebookId, props.tagId, props.sort], () => { page.value = 1; load() })
     onMounted(load)
 
-    return { noteStore, router, page, size, selectedIds, load, onSelectionChange, onPageChange, deleteNote, batchDelete, formatDate }
+    return { noteStore, router, page, size, selectedIds, load, onSelectionChange, onPageChange,
+      deleteNote, batchDelete, formatDate,
+      summaryVisible, summarizing, summaryContent, summaryError, summaryProgress, renderedSummary,
+      startSummary, saveSummary }
   }
 }
 </script>
+
+<style scoped>
+.summary-content {
+  max-height: 500px;
+  overflow-y: auto;
+  line-height: 1.7;
+}
+.summary-content :deep(h2) { margin-top: 20px; border-bottom: 1px solid var(--border-color); padding-bottom: 6px; }
+.summary-content :deep(h3) { margin-top: 16px; }
+.summary-content :deep(code) { background: var(--bg-secondary); padding: 2px 6px; border-radius: 4px; }
+.summary-content :deep(pre) { background: var(--bg-secondary); padding: 12px; border-radius: 8px; overflow-x: auto; }
+</style>

@@ -66,6 +66,10 @@ public class NoteService {
                 PageRequest.of(page, size, Sort.by(dir, sortField)));
     }
 
+    public List<Note> getByIds(List<String> ids) {
+        return noteRepo.findAllById(ids);
+    }
+
     public Note getById(String id) {
         Note note = noteRepo.findByIdWithTags(id);
         if (note == null) throw new ResourceNotFoundException("Note", id);

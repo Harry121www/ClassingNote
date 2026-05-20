@@ -44,11 +44,6 @@
       <span>项目分析</span>
     </el-menu-item>
 
-    <el-menu-item index="/knowledge">
-      <el-icon><Collection /></el-icon>
-      <span>知识库</span>
-    </el-menu-item>
-
     <el-menu-item index="/settings">
       <el-icon><Tools /></el-icon>
       <span>设置</span>
@@ -87,7 +82,6 @@ export default {
 
     const activeMenu = computed(() => {
       if (route.path.startsWith('/analyzer')) return '/analyzer'
-      if (route.path.startsWith('/knowledge')) return '/knowledge'
       if (route.path.startsWith('/settings')) return '/settings'
       if (route.path.startsWith('/tags')) return '/tags'
       if (route.path.startsWith('/search')) return ''
