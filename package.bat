@@ -27,7 +27,7 @@ if exist "%DIST%" rmdir /s /q "%DIST%"
 mkdir "%DIST%"
 
 copy "target\classnote-local-1.0.0.jar" "%DIST%\ClassNote.jar"
-copy "package\start.bat" "%DIST%\start.bat"
+copy "package\start.vbs" "%DIST%\start.vbs"
 copy "package\README.txt" "%DIST%\README.txt"
 
 echo.

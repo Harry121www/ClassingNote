@@ -3,7 +3,7 @@ ClassNote - 本地笔记管理应用
 
 使用方法：
 1. 确保已安装 Java 17 或更高版本
-2. 双击 start.bat 启动
+2. 双击 start.vbs 启动（无黑窗口）
 3. 浏览器打开 http://localhost:8080
 
 数据位置：
