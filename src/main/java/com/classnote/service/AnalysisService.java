@@ -124,7 +124,7 @@ public class AnalysisService {
 
     private Flux<AnalysisEvent> phasePerFile(LLMService llm, List<FileItem> files) {
         return Flux.fromIterable(files)
-            .flatMap(file -> {
+            .concatMap(file -> {
                 String prompt = String.format(
                     "请阅读以下源代码文件，用一段话概括它的实际职责和对外接口。不要猜测或补充代码中没有的内容。\n\n" +
                     "文件: %s\n\n```\n%s\n```", file.getPath(), file.getContent()
