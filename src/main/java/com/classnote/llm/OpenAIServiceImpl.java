@@ -6,9 +6,12 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -69,11 +72,24 @@ public class OpenAIServiceImpl implements LLMService {
         return client.post()
                 .uri("/v1/chat/completions")
                 .bodyValue(body)
-                .retrieve()
-                .bodyToFlux(String.class)
-                .flatMap(chunk -> Flux.fromArray(chunk.split("\n", -1)))
+                .exchangeToFlux(response -> {
+                    log.info("LLM response status: {}", response.statusCode());
+                    if (response.statusCode().isError()) {
+                        return response.bodyToMono(String.class)
+                            .flatMapMany(err -> Flux.error(new IllegalStateException(
+                                "API " + response.statusCode().value() + ": " + err)));
+                    }
+                    return response.bodyToFlux(DataBuffer.class);
+                })
+                .concatMap(dataBuffer -> {
+                    byte[] bytes = new byte[dataBuffer.readableByteCount()];
+                    dataBuffer.read(bytes);
+                    DataBufferUtils.release(dataBuffer);
+                    String chunk = new String(bytes, StandardCharsets.UTF_8);
+                    return Flux.fromArray(chunk.split("\n", -1));
+                })
                 .map(line -> line.replace("\r", "").trim())
-                .doOnNext(line -> { if (!line.isEmpty()) log.info("RAW: {}", line.length() > 200 ? line.substring(0, 200) + "..." : line); })
+                .doOnNext(line -> { if (!line.isEmpty() && line.length() < 300) log.info("RAW: {}", line); })
                 .filter(line -> line.startsWith("data:") && line.length() > 5)
                 .map(line -> line.substring(5).trim())
                 .filter(payload -> !payload.isEmpty() && !payload.equals("[DONE]"))
@@ -92,7 +108,7 @@ public class OpenAIServiceImpl implements LLMService {
                             }
                         }
                     } catch (Exception e) {
-                        log.warn("JSON parse fail (first 200 chars): {}", payload.length() > 200 ? payload.substring(0, 200) : payload);
+                        log.warn("JSON-ERR: {}", payload.length() > 200 ? payload.substring(0, 200) : payload);
                     }
                 });
     }
