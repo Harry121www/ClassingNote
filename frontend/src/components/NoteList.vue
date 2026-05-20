@@ -49,9 +49,15 @@
       </div>
       <div v-if="summaryContent" v-html="renderedSummary" class="summary-content"></div>
       <div v-if="summaryError" style="color:red;">{{ summaryError }}</div>
-      <template #footer v-if="!summarizing">
+      <template #footer v-if="!summarizing && !summaryError">
+        <el-select v-model="summaryNotebookId" placeholder="选择笔记本" size="small" style="width:160px;">
+          <el-option v-for="nb in summaryNotebooks" :key="nb.id" :label="nb.name" :value="nb.id" />
+        </el-select>
         <el-button @click="summaryVisible = false">关闭</el-button>
-        <el-button type="primary" @click="saveSummary" :disabled="!summaryContent">存为新笔记</el-button>
+        <el-button type="primary" @click="saveSummary" :disabled="!summaryContent || !summaryNotebookId">存为新笔记</el-button>
+      </template>
+      <template #footer v-if="summaryError">
+        <el-button @click="summaryVisible = false">关闭</el-button>
       </template>
     </el-dialog>
   </div>
@@ -63,6 +69,7 @@ import { useRouter } from 'vue-router'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import { useNoteStore } from '../stores/note'
 import { noteApi } from '../api/notes'
+import { notebookApi } from '../api/notebooks'
 import { marked } from 'marked'
 
 export default {
@@ -108,6 +115,8 @@ export default {
     const summaryContent = ref('')
     const summaryError = ref('')
     const summaryProgress = ref(0)
+    const summaryNotebookId = ref('')
+    const summaryNotebooks = ref([])
     const renderedSummary = computed(() => summaryContent.value ? marked.parse(summaryContent.value) : '')
 
     const startSummary = async () => {
@@ -116,6 +125,13 @@ export default {
       summaryContent.value = ''
       summaryError.value = ''
       summaryProgress.value = 10
+      summaryNotebookId.value = props.notebookId || ''
+
+      // load notebooks for the save dropdown
+      try {
+        const res = await notebookApi.list({ size: 50 })
+        summaryNotebooks.value = res.data.content || []
+      } catch (e) { /* ignore */ }
 
       try {
         const r = await fetch('/api/v1/notes/summarize', {
@@ -160,9 +176,10 @@ export default {
     }
 
     const saveSummary = async () => {
+      if (!summaryNotebookId.value) { ElMessage.warning('请选择笔记本'); return }
       try {
         const title = '阶段总结 - ' + new Date().toLocaleDateString('zh-CN')
-        await noteApi.create({ title, content: summaryContent.value, notebookId: props.notebookId || undefined })
+        await noteApi.create({ title, content: summaryContent.value, notebookId: summaryNotebookId.value })
         ElMessage.success('已保存为笔记')
         summaryVisible.value = false
         summaryContent.value = ''
@@ -180,7 +197,7 @@ export default {
     return { noteStore, router, page, size, selectedIds, load, onSelectionChange, onPageChange,
       deleteNote, batchDelete, formatDate,
       summaryVisible, summarizing, summaryContent, summaryError, summaryProgress, renderedSummary,
-      startSummary, saveSummary }
+      summaryNotebookId, summaryNotebooks, startSummary, saveSummary }
   }
 }
 </script>
