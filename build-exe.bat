@@ -34,7 +34,7 @@ echo [1/4] Building custom JRE with JavaFX...
 set JRE_OUT=%~dp0target\javafx-jre
 
 echo [1/4] Building custom JRE with JavaFX...
-set JRE_OUT=%~dp0target\javafx-jre
+set JRE_OUT=%~dp0dist\javafx-jre
 if exist "%JRE_OUT%" rmdir /s /q "%JRE_OUT%"
 echo   Running jlink...
 "%JDK17%\bin\jlink.exe" --output "%JRE_OUT%" --module-path "%JDK17%\jmods" --module-path "%JAVAFX_JMODS%" --add-modules java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.management.rmi,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.se,java.security.jgss,java.security.sasl,java.sql,java.transaction.xa,java.xml,java.xml.crypto,jdk.unsupported,jdk.crypto.ec,jdk.jartool,jdk.net,jdk.zipfs,javafx.web,javafx.controls --bind-services
@@ -64,7 +64,7 @@ echo [4/4] Creating EXE with JavaFX desktop window...
 set OUTPUT=%~dp0dist\ClassNote-App
 if exist "%OUTPUT%" rmdir /s /q "%OUTPUT%"
 
-"%JDK17%\bin\jpackage.exe" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --runtime-image "%JRE_OUT%" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0
+"%JDK17%\bin\jpackage.exe" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --runtime-image "%~dp0dist\javafx-jre" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0
 if %errorlevel% neq 0 ( echo jpackage failed! & pause & exit /b 1 )
 
 echo.
