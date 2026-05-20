@@ -34,7 +34,7 @@ echo [3/3] Creating EXE with JavaFX desktop window...
 set OUTPUT=%~dp0dist\ClassNote-App
 if exist "%OUTPUT%" rmdir /s /q "%OUTPUT%"
 
-%JDK17%\bin\jpackage.exe --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --module-path "%JAVAFX%\lib" --add-modules javafx.web,javafx.controls --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0
+"%JDK17%\bin\jpackage.exe" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --module-path "%JAVAFX%\lib" --add-modules javafx.web,javafx.controls --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0
 if %errorlevel% neq 0 ( echo jpackage failed! & pause & exit /b 1 )
 
 echo.
