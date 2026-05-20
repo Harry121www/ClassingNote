@@ -18,25 +18,37 @@ public class ClassNoteApplication {
     @EventListener(ApplicationReadyEvent.class)
     public void openBrowser() {
         String url = "http://localhost:8080";
-        try {
-            // Try Chrome app mode first (cleanest)
-            try {
-                new ProcessBuilder("cmd", "/c", "start", "chrome", "--app=" + url, "--start-maximized").start();
-                return;
-            } catch (Exception e1) { /* chrome not available */ }
+        System.out.println("\n========================================");
+        System.out.println("  ClassNote 已启动！");
+        System.out.println("  请在浏览器打开: " + url);
+        System.out.println("========================================\n");
 
-            // Try Edge app mode
+        new Thread(() -> {
+            try { Thread.sleep(2000); } catch (Exception e) { }
             try {
-                new ProcessBuilder("cmd", "/c", "start", "msedge", "--app=" + url, "--start-maximized").start();
-                return;
-            } catch (Exception e2) { /* edge not available */ }
+                // Try Desktop.browse first (most reliable in jpackage)
+                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+                    Desktop.getDesktop().browse(new URI(url));
+                    return;
+                }
+            } catch (Exception e1) { /* fall through */ }
 
-            // Fallback: system default browser
-            if (Desktop.isDesktopSupported()) {
-                Desktop.getDesktop().browse(new URI(url));
-            }
-        } catch (Exception e) {
-            // Browser launch failed, user can open manually
-        }
+            try {
+                // Try direct Chrome
+                Runtime.getRuntime().exec(new String[]{
+                    System.getenv("ProgramFiles") + "\\Google\\Chrome\\Application\\chrome.exe",
+                    "--app=" + url, "--start-maximized"
+                });
+                return;
+            } catch (Exception e2) { /* fall through */ }
+
+            try {
+                // Try direct Edge
+                Runtime.getRuntime().exec(new String[]{
+                    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
+                    "--app=" + url, "--start-maximized"
+                });
+            } catch (Exception e3) { /* give up */ }
+        }).start();
     }
 }
