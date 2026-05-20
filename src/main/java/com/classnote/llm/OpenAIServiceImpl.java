@@ -59,8 +59,14 @@ public class OpenAIServiceImpl implements LLMService {
         return client.post()
                 .uri("/v1/chat/completions")
                 .bodyValue(body)
-                .retrieve()
-                .bodyToFlux(String.class)
+                .exchangeToFlux(response -> {
+                    if (response.statusCode().is4xxClientError() || response.statusCode().is5xxServerError()) {
+                        return response.bodyToMono(String.class)
+                            .flatMapMany(errorBody -> Flux.error(
+                                new IllegalStateException("API " + response.statusCode().value() + ": " + errorBody)));
+                    }
+                    return response.bodyToFlux(String.class);
+                })
                 .filter(line -> line.startsWith("data: ") && !line.startsWith("data: [DONE]"))
                 .map(line -> {
                     try {
