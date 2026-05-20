@@ -4,6 +4,7 @@ import com.classnote.dto.LLMConfigRequest;
 import com.classnote.entity.LLMConfigEntity;
 import com.classnote.repository.LLMConfigRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class LLMConfigService {
@@ -18,6 +19,7 @@ public class LLMConfigService {
         return repo.findById("default").orElseGet(() -> repo.save(new LLMConfigEntity()));
     }
 
+    @Transactional
     public LLMConfigEntity update(LLMConfigRequest req) {
         LLMConfigEntity config = get();
         config.setProvider(req.getProvider());

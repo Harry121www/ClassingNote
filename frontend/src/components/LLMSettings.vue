@@ -13,7 +13,8 @@
         </el-select>
       </el-form-item>
       <el-form-item label="API Key">
-        <el-input v-model="form.apiKey" type="password" show-password placeholder="sk-..." />
+        <el-input v-model="form.apiKey" type="password" show-password
+          :placeholder="savedKeyMasked ? '已保存 (' + savedKeyMasked + ')，留空不修改' : 'sk-...'" />
       </el-form-item>
       <el-form-item label="Base URL">
         <el-input v-model="form.baseUrl" placeholder="可选，留空使用默认" />
@@ -22,7 +23,8 @@
         <el-input v-model="form.model" placeholder="gpt-4o / claude-sonnet-4-6 / llama3" />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="save">保存配置</el-button>
+        <el-button type="primary" @click="save" :loading="saving">保存配置</el-button>
+        <span v-if="saved" style="margin-left:12px; color:#67c23a; font-size:13px;">已保存</span>
       </el-form-item>
     </el-form>
   </el-card>
@@ -37,6 +39,9 @@ export default {
   name: 'LLMSettings',
   setup() {
     const form = ref({ provider: 'OPENAI', apiKey: '', baseUrl: '', model: 'gpt-4o' })
+    const savedKeyMasked = ref('')
+    const saving = ref(false)
+    const saved = ref(false)
 
     onMounted(async () => {
       try {
@@ -45,26 +50,40 @@ export default {
         form.value.provider = data.provider
         form.value.baseUrl = data.baseUrl || ''
         form.value.model = data.model
+        if (data.apiKey && data.apiKey !== '****') {
+          savedKeyMasked.value = data.apiKey
+        }
       } catch (e) {
         // use defaults
       }
     })
 
     async function save() {
+      saving.value = true
+      saved.value = false
       try {
-        await llmApi.updateConfig({
+        const body = {
           provider: form.value.provider,
           apiKey: form.value.apiKey || undefined,
           baseUrl: form.value.baseUrl || undefined,
           model: form.value.model
-        })
+        }
+        const res = await llmApi.updateConfig(body)
+        // update masked key display
+        if (res.data && res.data.apiKey) {
+          savedKeyMasked.value = res.data.apiKey
+        }
+        form.value.apiKey = ''
+        saved.value = true
         ElMessage.success('配置已保存')
       } catch (e) {
         ElMessage.error('保存失败')
+      } finally {
+        saving.value = false
       }
     }
 
-    return { form, save }
+    return { form, savedKeyMasked, saving, saved, save }
   }
 }
 </script>
