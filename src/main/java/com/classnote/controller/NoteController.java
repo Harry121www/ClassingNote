@@ -93,16 +93,18 @@ public class NoteController {
 
         LLMService llm = llmFactory.getService();
         String prompt = String.format(
-            "以下是我学习过程中的几篇笔记。请帮我生成一份**阶段总结**，用中文回答。\n\n" +
-            "要求：\n" +
-            "1. 提炼这些笔记的核心知识点，按主题归类\n" +
-            "2. 指出各个知识点之间的关联\n" +
-            "3. 总结我在这阶段学到的主要内容\n" +
-            "4. 用 Markdown 格式输出\n\n" +
+            "以下是几篇学习笔记。请将它们的内容进行整合归纳，生成一份阶段总结。\n\n" +
+            "【重要规则】\n" +
+            "- 只使用下面笔记中的内容，不要添加任何笔记中没有的知识、解释或补充\n" +
+            "- 不要凭空编造笔记中不存在的信息\n" +
+            "- 如果笔记内容互相矛盾，如实指出，不要自行判断对错\n" +
+            "- 把相似主题的笔记合并归类，去除重复内容\n" +
+            "- 保持原文的关键术语和表述，不要改写或润色\n" +
+            "- 用 Markdown 格式，按主题分小节输出\n\n" +
             "笔记内容：\n\n%s", content.toString()
         );
 
-        llm.streamChat("你是一个学习助教，擅长帮学生做阶段性知识总结。请用中文回答。", prompt)
+        llm.streamChat("你是一个文档整理助手。你的唯一任务是将多篇笔记的内容合并归类，不添加任何原文没有的信息。请用中文。", prompt)
             .map(chunk -> new AnalysisEvent("SUMMARY", null, chunk, false))
             .concatWith(reactor.core.publisher.Mono.just(new AnalysisEvent("DONE", null, "", true)))
             .subscribe(
