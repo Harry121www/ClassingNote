@@ -66,12 +66,11 @@ public class AnalysisService {
         return Flux.fromIterable(files)
             .flatMap(file -> {
                 String prompt = String.format(
-                    "Analyze the following source file. In one paragraph, summarize its responsibility, " +
-                    "key methods/functions, and its dependencies on other parts of the project.\n\n" +
-                    "File: %s\n\n```\n%s\n```", file.getPath(), file.getContent()
+                    "请分析以下源代码文件，用一段话概括它的职责、核心方法/函数，以及它和项目中其他部分的依赖关系。请用中文回答。\n\n" +
+                    "文件: %s\n\n```\n%s\n```", file.getPath(), file.getContent()
                 );
                 return llm.streamChat(
-                    "You are a code analysis assistant. Provide concise, accurate summaries of source code files.",
+                    "你是一个代码分析助手。请用中文提供简洁准确的源代码文件摘要。",
                     prompt
                 ).map(chunk -> new AnalysisEvent("PER_FILE", file.getPath(), chunk, false))
                 .concatWith(Mono.just(new AnalysisEvent("PER_FILE", file.getPath(), "", true)));
@@ -86,14 +85,13 @@ public class AnalysisService {
                     .map(f -> "- " + f.getPath())
                     .collect(Collectors.joining("\n"));
                 String prompt = String.format(
-                    "The following files belong to the same package/directory: %s\n\n%s\n\n" +
-                    "Based on these filenames (you've already analyzed each file), generate " +
-                    "a structured knowledge summary for this package. Include: " +
-                    "1) Package responsibility, 2) Key classes and their roles, 3) How they work together.",
+                    "以下文件属于同一个包/目录: %s\n\n%s\n\n" +
+                    "请基于文件名（你之前已经分析过每个文件），为这个包生成结构化的知识点总结。内容包括：" +
+                    "1) 包的职责，2) 关键类及其角色，3) 它们之间如何协作。请用中文回答。",
                     pkg, fileList
                 );
                 return llm.streamChat(
-                    "You are a software architecture analyst. Summarize packages/modules clearly.",
+                    "你是一个软件架构分析师。请用中文清晰地总结包/模块的职责。",
                     prompt
                 ).map(chunk -> new AnalysisEvent("PACKAGE", pkg, chunk, false))
                 .concatWith(Mono.just(new AnalysisEvent("PACKAGE", pkg, "", true)));
@@ -105,17 +103,17 @@ public class AnalysisService {
             .map(p -> "- " + p)
             .collect(Collectors.joining("\n"));
         String prompt = String.format(
-            "Project: %s\n\nPackages/Modules:\n%s\n\n" +
-            "You have analyzed each file and package in this project. Now generate a comprehensive " +
-            "project overview in Markdown format. Include:\n" +
-            "## Project Architecture\n- Overall architecture pattern\n- Technology stack evident from the code\n\n" +
-            "## Module Summary\n- Brief description of each package/module\n\n" +
-            "## Key Design Patterns\n- Notable design patterns used\n\n" +
-            "## Data Flow\n- How data moves through the system",
+            "项目: %s\n\n包/模块列表:\n%s\n\n" +
+            "你已经分析了这个项目的每个文件和包。现在请生成一份全面的项目总览（Markdown格式），包含：\n" +
+            "## 项目架构\n- 整体架构模式\n- 代码中体现的技术栈\n\n" +
+            "## 模块总览\n- 每个包/模块的简介\n\n" +
+            "## 关键设计模式\n- 项目中使用的设计模式\n\n" +
+            "## 数据流\n- 数据如何在系统中流转\n\n" +
+            "请用中文回答。",
             projectName, pkgList
         );
         return llm.streamChat(
-            "You are a senior software architect. Generate clear, educational project overviews.",
+            "你是一个资深软件架构师。请用中文生成清晰、有教育意义的项目总览。",
             prompt
         ).map(chunk -> new AnalysisEvent("OVERVIEW", projectName, chunk, false))
         .concatWith(Mono.just(new AnalysisEvent("OVERVIEW", projectName, "", true)));
