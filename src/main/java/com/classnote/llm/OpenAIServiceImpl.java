@@ -100,7 +100,7 @@ public class OpenAIServiceImpl implements LLMService {
                             JsonNode delta = choices.get(0).get("delta");
                             if (delta != null) {
                                 JsonNode content = delta.get("content");
-                                if (content != null && !content.asText().isEmpty()) {
+                                if (content != null && !content.isNull() && !content.asText().isEmpty()) {
                                     sink.next(content.asText());
                                 }
                             }
