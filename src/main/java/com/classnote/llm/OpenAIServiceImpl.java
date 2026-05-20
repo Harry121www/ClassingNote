@@ -89,7 +89,6 @@ public class OpenAIServiceImpl implements LLMService {
                     return Flux.fromArray(chunk.split("\n", -1));
                 })
                 .map(line -> line.replace("\r", "").trim())
-                .doOnNext(line -> { if (!line.isEmpty() && line.length() < 300) log.info("RAW: {}", line); })
                 .filter(line -> line.startsWith("data:") && line.length() > 5)
                 .map(line -> line.substring(5).trim())
                 .filter(payload -> !payload.isEmpty() && !payload.equals("[DONE]"))
@@ -102,13 +101,12 @@ public class OpenAIServiceImpl implements LLMService {
                             if (delta != null) {
                                 JsonNode content = delta.get("content");
                                 if (content != null && !content.asText().isEmpty()) {
-                                    log.info("TEXT: {}", content.asText());
                                     sink.next(content.asText());
                                 }
                             }
                         }
                     } catch (Exception e) {
-                        log.warn("JSON-ERR: {}", payload.length() > 200 ? payload.substring(0, 200) : payload);
+                        // JSON line split across chunks, skip
                     }
                 });
     }
