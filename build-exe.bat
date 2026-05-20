@@ -13,6 +13,19 @@ if not exist "%JDK17%\bin\java.exe" (
 
 set JPACKAGE=%JDK17%\bin\jpackage.exe
 
+:: Check / download JavaFX SDK
+set JAVAFX=%~dp0javafx-sdk-17.0.6
+if not exist "%JAVAFX%\lib\javafx.web.jar" (
+    echo Downloading JavaFX SDK (one-time, ~60MB)...
+    powershell -Command "Invoke-WebRequest -Uri 'https://download2.gluonhq.com/openjfx/17.0.6/openjfx-17.0.6_windows-x64_bin-sdk.zip' -OutFile '%TEMP%\javafx-sdk.zip'"
+    powershell -Command "Expand-Archive -Path '%TEMP%\javafx-sdk.zip' -DestinationPath '%~dp0' -Force"
+    del "%TEMP%\javafx-sdk.zip"
+    if not exist "%JAVAFX%\lib\javafx.web.jar" (
+        echo JavaFX SDK download failed! Please download manually from https://gluonhq.com/products/javafx/
+        pause & exit /b 1
+    )
+)
+
 echo [1/4] Building frontend...
 cd /d "%~dp0frontend"
 call npm run build
@@ -29,7 +42,7 @@ echo [3/4] Creating app image with bundled JRE...
 set OUTPUT=%~dp0dist\ClassNote-App
 if exist "%OUTPUT%" rmdir /s /q "%OUTPUT%"
 
-"%JPACKAGE%" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0 --win-console
+"%JPACKAGE%" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --module-path "%JAVAFX%\lib" --add-modules javafx.web,javafx.controls --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false -Djavafx.allowjs=true" --app-version 1.0.0
 
 if %errorlevel% neq 0 (
     echo jpackage failed! Make sure JDK 17 is installed.
