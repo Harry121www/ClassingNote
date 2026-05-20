@@ -21,22 +21,16 @@ export default {
   setup(props) {
     const stageLabel = computed(() => {
       switch (props.currentStage) {
-        case 'PER_FILE': return '正在分析文件…'
-        case 'PACKAGE': return '正在汇总模块…'
-        case 'OVERVIEW': return '正在生成项目总览…'
+        case 'ANALYSIS': return '正在分析项目结构…'
         case 'KNOWLEDGE': return '正在提取知识点…'
-        case 'LEARNING': return '正在生成学习建议…'
-        default: return ''
+        default: return '正在分析…'
       }
     })
     const progressPercent = computed(() => {
       switch (props.currentStage) {
-        case 'PER_FILE': return 25
-        case 'PACKAGE': return 55
-        case 'OVERVIEW': return 85
+        case 'ANALYSIS': return 60
         case 'KNOWLEDGE': return 50
-        case 'LEARNING': return 85
-        default: return 0
+        default: return 30
       }
     })
     return { stageLabel, progressPercent }
