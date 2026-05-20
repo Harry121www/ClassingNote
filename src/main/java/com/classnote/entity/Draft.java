@@ -20,7 +20,7 @@ public class Draft {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Lob
     private String content;
 
     @Column(length = 36)

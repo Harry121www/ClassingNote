@@ -19,10 +19,10 @@ public class Note {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Lob
     private String content;
 
-    @Column(columnDefinition = "MEDIUMTEXT")
+    @Lob
     private String plainText;
 
     @Column(nullable = false)

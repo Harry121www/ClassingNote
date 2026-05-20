@@ -17,7 +17,7 @@ public class KnowledgeEntry {
     @Column(nullable = false, length = 200)
     private String title;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Lob
     private String content;
 
     @Column(nullable = false, length = 100)
