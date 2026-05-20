@@ -38,6 +38,18 @@ public class KnowledgeService {
             .orElseThrow(() -> new ResourceNotFoundException("KnowledgeEntry", id));
     }
 
+    public KnowledgeEntry update(String id, KnowledgeEntryRequest req) {
+        KnowledgeEntry entry = getById(id);
+        if (req.getTitle() != null) entry.setTitle(req.getTitle());
+        if (req.getContent() != null) entry.setContent(req.getContent());
+        if (req.getProjectName() != null) entry.setProjectName(req.getProjectName());
+        if (req.getCategory() != null) entry.setCategory(req.getCategory());
+        entry.setFilePath(req.getFilePath());
+        entry.setPackageName(req.getPackageName());
+        if (req.getSourceNoteId() != null) entry.setSourceNoteId(req.getSourceNoteId());
+        return repo.save(entry);
+    }
+
     public void delete(String id) {
         KnowledgeEntry entry = getById(id);
         repo.delete(entry);

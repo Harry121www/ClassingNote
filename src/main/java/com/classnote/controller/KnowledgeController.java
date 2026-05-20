@@ -40,6 +40,13 @@ public class KnowledgeController {
             KnowledgeEntryResponse.from(knowledgeService.getById(id)));
     }
 
+    @PutMapping("/{id}")
+    public ApiResponse<KnowledgeEntryResponse> update(@PathVariable String id,
+                                                       @RequestBody KnowledgeEntryRequest req) {
+        return ApiResponse.success("知识库条目已更新",
+            KnowledgeEntryResponse.from(knowledgeService.update(id, req)));
+    }
+
     @DeleteMapping("/{id}")
     public ApiResponse<?> delete(@PathVariable String id) {
         knowledgeService.delete(id);
