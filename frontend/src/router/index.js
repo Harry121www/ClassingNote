@@ -31,6 +31,16 @@ const routes = [
         path: 'search',
         name: 'SearchView',
         component: () => import('../views/SearchView.vue')
+      },
+      {
+        path: 'analyzer',
+        name: 'ProjectAnalyzer',
+        component: () => import('../views/ProjectAnalyzer.vue')
+      },
+      {
+        path: 'knowledge',
+        name: 'KnowledgeBase',
+        component: () => import('../views/KnowledgeBase.vue')
       }
     ]
   }

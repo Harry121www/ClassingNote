@@ -1,6 +1,6 @@
 <template>
-  <div style="padding:16px; border-bottom:1px solid #e4e7ed;">
-    <h2 style="margin:0; color:#409EFF; font-size:18px;">ClassNote</h2>
+  <div style="padding:16px; border-bottom:1px solid var(--border-color);">
+    <h2 style="margin:0; color:var(--brand-color); font-size:18px;">ClassNote</h2>
   </div>
 
   <div style="padding:12px 16px;">
@@ -24,7 +24,7 @@
       <el-menu-item v-for="nb in notebookStore.notebooks" :key="nb.id"
         :index="`/notes?notebookId=${nb.id}`">
         {{ nb.name }}
-        <span style="color:#909399; font-size:12px; margin-left:auto;">({{ nb.noteCount }})</span>
+        <span style="color:var(--text-secondary); font-size:12px; margin-left:auto;">({{ nb.noteCount }})</span>
       </el-menu-item>
     </el-sub-menu>
 
@@ -39,13 +39,23 @@
       </el-menu-item>
     </el-sub-menu>
 
+    <el-menu-item index="/analyzer">
+      <el-icon><DataAnalysis /></el-icon>
+      <span>项目分析</span>
+    </el-menu-item>
+
+    <el-menu-item index="/knowledge">
+      <el-icon><Collection /></el-icon>
+      <span>知识库</span>
+    </el-menu-item>
+
     <el-menu-item index="/tags">
       <el-icon><Setting /></el-icon>
       <span>管理标签</span>
     </el-menu-item>
   </el-menu>
 
-  <div style="padding:12px 16px; border-top:1px solid #e4e7ed;">
+  <div style="padding:12px 16px; border-top:1px solid var(--border-color);">
     <el-button @click="prefStore.toggleTheme()" size="small" style="width:100%;">
       <el-icon><component :is="prefStore.theme==='dark'?'Sunny':'Moon'" /></el-icon>
       {{ prefStore.theme === 'dark' ? '浅色模式' : '深色模式' }}
@@ -71,6 +81,8 @@ export default {
     const searchKeyword = ref(route.query.keyword || '')
 
     const activeMenu = computed(() => {
+      if (route.path.startsWith('/analyzer')) return '/analyzer'
+      if (route.path.startsWith('/knowledge')) return '/knowledge'
       if (route.path.startsWith('/tags')) return '/tags'
       if (route.path.startsWith('/search')) return ''
       return '/notes'
