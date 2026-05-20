@@ -1,26 +1,44 @@
 <template>
   <div style="height:100%; display:flex; flex-direction:column;">
-    <div style="padding:12px 20px; border-bottom:1px solid #e4e7ed; display:flex; align-items:center; gap:12px;">
-      <el-input v-model="title" placeholder="笔记标题" style="width:300px;" maxlength="200" />
-      <el-select v-model="notebookId" placeholder="选择笔记本" style="width:180px;">
-        <el-option v-for="nb in notebookStore.notebooks" :key="nb.id"
-          :label="nb.name" :value="nb.id" />
-      </el-select>
-      <el-select v-model="selectedTagIds" placeholder="选择标签" style="width:200px;" multiple>
-        <el-option v-for="tag in tagStore.tags" :key="tag.id" :label="tag.name" :value="tag.id" />
-      </el-select>
-      <el-button @click="uploadRef.click()" size="small">
-        <el-icon><Upload /></el-icon> 插入附件
-      </el-button>
-      <input ref="uploadRef" type="file" hidden @change="onFileUpload" />
-      <div style="flex:1;" />
-      <el-button @click="save" type="primary" :disabled="!canSave">保存</el-button>
+
+    <!-- Preview mode toolbar -->
+    <div v-if="viewMode === 'preview'" style="padding:8px 20px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:8px;">
+      <h2 style="margin:0; font-size:16px; flex:1;">{{ title || '无标题' }}</h2>
+      <span v-if="notebookId" style="font-size:12px; color:var(--text-secondary);">{{ notebookName }}</span>
+      <span v-for="tag in selectedTagNames" :key="tag" style="font-size:12px; color:var(--text-secondary);">#{{ tag }}</span>
+      <el-button @click="viewMode = 'edit'">编辑</el-button>
       <el-button @click="router.back()">返回</el-button>
     </div>
 
-    <div style="flex:1; display:flex; overflow:hidden;">
+    <!-- Edit mode toolbar -->
+    <div v-if="viewMode === 'edit'" style="padding:8px 20px; border-bottom:1px solid var(--border-color); display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+      <el-input v-model="title" placeholder="笔记标题" style="width:240px;" size="small" maxlength="200" />
+      <el-select v-model="notebookId" placeholder="笔记本" style="width:150px;" size="small">
+        <el-option v-for="nb in notebookStore.notebooks" :key="nb.id" :label="nb.name" :value="nb.id" />
+      </el-select>
+      <el-select v-model="selectedTagIds" placeholder="标签" style="width:160px;" size="small" multiple>
+        <el-option v-for="tag in tagStore.tags" :key="tag.id" :label="tag.name" :value="tag.id" />
+      </el-select>
+      <el-color-picker v-model="textColor" size="small" show-alpha @change="insertColor" />
+      <el-button @click="uploadRef.click()" size="small">
+        <el-icon><Upload /></el-icon> 附件
+      </el-button>
+      <input ref="uploadRef" type="file" hidden @change="onFileUpload" />
+      <div style="flex:1;" />
+      <el-button @click="viewMode = 'preview'" size="small">预览</el-button>
+      <el-button @click="save" type="primary" size="small" :disabled="!canSave">保存</el-button>
+      <el-button @click="router.back()" size="small">返回</el-button>
+    </div>
+
+    <!-- Preview content -->
+    <div v-if="viewMode === 'preview'" style="flex:1; overflow-y:auto;">
+      <MarkdownPreview :content="content" style="max-width:900px; margin:0 auto;" />
+    </div>
+
+    <!-- Edit content -->
+    <div v-if="viewMode === 'edit'" style="flex:1; display:flex; overflow:hidden;">
       <MarkdownEditor v-model="content" :font-size="prefStore.editorFontSize"
-        style="flex:1; border-right:1px solid #e4e7ed;" />
+        style="flex:1; border-right:1px solid var(--border-color);" />
       <MarkdownPreview :content="content" style="flex:1;" />
     </div>
   </div>
@@ -58,9 +76,28 @@ export default {
     const notebookId = ref('')
     const selectedTagIds = ref([])
     const uploadRef = ref(null)
+    const viewMode = ref(props.id ? 'preview' : 'edit')
+    const textColor = ref('#409EFF')
     let autoSaveTimer = null
 
     const canSave = computed(() => title.value.trim() && notebookId.value)
+
+    const notebookName = computed(() => {
+      const nb = notebookStore.notebooks.find(n => n.id === notebookId.value)
+      return nb ? nb.name : ''
+    })
+
+    const selectedTagNames = computed(() => {
+      return tagStore.tags
+        .filter(t => selectedTagIds.value.includes(t.id))
+        .map(t => t.name)
+    })
+
+    const insertColor = () => {
+      if (textColor.value) {
+        content.value += `<span style="color:${textColor.value};">文字</span>`
+      }
+    }
 
     const save = async () => {
       const data = {
@@ -135,7 +172,9 @@ export default {
     onUnmounted(() => { clearInterval(autoSaveTimer) })
 
     return {
-      title, content, notebookId, selectedTagIds, uploadRef, canSave, save, onFileUpload,
+      title, content, notebookId, selectedTagIds, uploadRef, viewMode, textColor,
+      canSave, notebookName, selectedTagNames, insertColor,
+      save, onFileUpload,
       router, notebookStore, tagStore, prefStore, noteStore
     }
   }
