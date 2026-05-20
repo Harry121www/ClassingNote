@@ -38,6 +38,11 @@ const routes = [
         component: () => import('../views/ProjectAnalyzer.vue')
       },
       {
+        path: 'settings',
+        name: 'Settings',
+        component: () => import('../views/SettingsView.vue')
+      },
+      {
         path: 'knowledge',
         name: 'KnowledgeBase',
         component: () => import('../views/KnowledgeBase.vue')
