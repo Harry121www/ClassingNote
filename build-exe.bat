@@ -36,8 +36,17 @@ set JRE_OUT=%~dp0target\javafx-jre
 echo [1/4] Building custom JRE with JavaFX...
 set JRE_OUT=%~dp0target\javafx-jre
 if exist "%JRE_OUT%" rmdir /s /q "%JRE_OUT%"
-"%JDK17%\bin\jlink.exe" --output "%JRE_OUT%" --module-path "%JDK17%\jmods;%JAVAFX_JMODS%" --add-modules java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.management.rmi,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.se,java.security.jgss,java.security.sasl,java.sql,java.transaction.xa,java.xml,java.xml.crypto,jdk.unsupported,jdk.crypto.ec,jdk.jartool,jdk.net,jdk.zipfs,javafx.web,javafx.controls --bind-services
-if %errorlevel% neq 0 ( echo jlink failed! & pause & exit /b 1 )
+echo   Running jlink...
+"%JDK17%\bin\jlink.exe" --output "%JRE_OUT%" --module-path "%JDK17%\jmods" --module-path "%JAVAFX_JMODS%" --add-modules java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.management.rmi,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.se,java.security.jgss,java.security.sasl,java.sql,java.transaction.xa,java.xml,java.xml.crypto,jdk.unsupported,jdk.crypto.ec,jdk.jartool,jdk.net,jdk.zipfs,javafx.web,javafx.controls --bind-services
+if errorlevel 1 (
+    echo jlink errorlevel=%errorlevel%
+    pause & exit /b 1
+)
+if not exist "%JRE_OUT%\bin\java.exe" (
+    echo jlink produced no output at %JRE_OUT%
+    pause & exit /b 1
+)
+echo   JRE created successfully.
 
 echo [2/4] Building frontend...
 cd /d "%~dp0frontend"
