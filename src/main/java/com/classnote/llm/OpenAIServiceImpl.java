@@ -69,6 +69,8 @@ public class OpenAIServiceImpl implements LLMService {
                 .defaultHeader("Content-Type", "application/json")
                 .build();
 
+        StringBuilder[] buf = {new StringBuilder()};
+
         return client.post()
                 .uri("/v1/chat/completions")
                 .bodyValue(body)
@@ -90,38 +92,40 @@ public class OpenAIServiceImpl implements LLMService {
                                 return new String(bytes, StandardCharsets.UTF_8);
                             });
                 })
-                .flatMap(chunk -> {
-                    String[] lines = chunk.split("\n");
-                    return Flux.fromArray(lines);
-                })
-                .map(line -> line.replace("\r", "").trim())
-                .filter(line -> !line.isEmpty())
-                .doOnNext(line -> log.debug("SSE line: {}", line))
-                .filter(line -> line.startsWith("data:"))
-                .map(line -> {
-                    String payload = line.substring(5).trim();
-                    if (payload.equals("[DONE]")) return "";
-                    try {
-                        JsonNode node = objectMapper.readTree(payload);
-                        JsonNode choices = node.get("choices");
-                        if (choices != null && choices.size() > 0) {
-                            JsonNode delta = choices.get(0).get("delta");
-                            if (delta != null) {
-                                JsonNode content = delta.get("content");
-                                if (content != null) {
-                                    String text = content.asText();
-                                    if (!text.isEmpty()) {
-                                        log.debug("LLM text: {}", text);
-                                        return text;
+                .handle((chunk, sink) -> {
+                    StringBuilder sb = buf[0];
+                    sb.append(chunk);
+                    String text = sb.toString();
+                    int lastSep = text.lastIndexOf("\n\n");
+                    if (lastSep < 0) return;
+                    String complete = text.substring(0, lastSep);
+                    sb.setLength(0);
+                    sb.append(text, lastSep + 2, text.length());
+                    for (String event : complete.split("\n\n")) {
+                        for (String line : event.split("\n")) {
+                            String cleaned = line.replace("\r", "").trim();
+                            if (cleaned.startsWith("data:")) {
+                                String payload = cleaned.substring(5).trim();
+                                if (payload.equals("[DONE]")) break;
+                                try {
+                                    JsonNode node = objectMapper.readTree(payload);
+                                    JsonNode choices = node.get("choices");
+                                    if (choices != null && choices.size() > 0) {
+                                        JsonNode delta = choices.get(0).get("delta");
+                                        if (delta != null) {
+                                            JsonNode content = delta.get("content");
+                                            if (content != null) {
+                                                String txt = content.asText();
+                                                if (!txt.isEmpty()) sink.next(txt);
+                                            }
+                                        }
                                     }
+                                } catch (Exception e) {
+                                    // skip malformed events
                                 }
                             }
                         }
-                    } catch (Exception e) {
-                        log.warn("Failed to parse SSE json: {}", payload);
                     }
-                    return "";
-                })
-                .filter(text -> !text.isEmpty());
+                });
     }
 }
