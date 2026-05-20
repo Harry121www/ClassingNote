@@ -4,14 +4,12 @@ import com.classnote.entity.LLMConfigEntity;
 import com.classnote.service.LLMConfigService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 
 import java.util.List;
 import java.util.Map;
 
-@Component
 public class OpenAIServiceImpl implements LLMService {
 
     private final LLMConfigService configService;
