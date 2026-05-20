@@ -16,39 +16,11 @@ public class ClassNoteApplication {
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void openBrowser() {
-        String url = "http://localhost:8080";
-        System.out.println("\n========================================");
-        System.out.println("  ClassNote 已启动！");
-        System.out.println("  请在浏览器打开: " + url);
-        System.out.println("========================================\n");
-
+    public void openWindow() {
+        System.out.println("Starting desktop window...");
         new Thread(() -> {
-            try { Thread.sleep(2000); } catch (Exception e) { }
-            try {
-                // Try Desktop.browse first (most reliable in jpackage)
-                if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                    Desktop.getDesktop().browse(new URI(url));
-                    return;
-                }
-            } catch (Exception e1) { /* fall through */ }
-
-            try {
-                // Try direct Chrome
-                Runtime.getRuntime().exec(new String[]{
-                    System.getenv("ProgramFiles") + "\\Google\\Chrome\\Application\\chrome.exe",
-                    "--app=" + url, "--start-maximized"
-                });
-                return;
-            } catch (Exception e2) { /* fall through */ }
-
-            try {
-                // Try direct Edge
-                Runtime.getRuntime().exec(new String[]{
-                    "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe",
-                    "--app=" + url, "--start-maximized"
-                });
-            } catch (Exception e3) { /* give up */ }
+            try { Thread.sleep(1500); } catch (Exception e) { }
+            DesktopWindow.launch("http://localhost:8080");
         }).start();
     }
 }
