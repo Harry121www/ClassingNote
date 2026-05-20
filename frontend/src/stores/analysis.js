@@ -8,7 +8,8 @@ export const useAnalysisStore = defineStore('analysis', {
     streamContent: '',
     error: null,
     fileTree: [],
-    projectName: ''
+    projectName: '',
+    analysisMode: 'ARCHITECTURE'
   }),
   actions: {
     reset() {

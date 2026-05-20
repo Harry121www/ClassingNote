@@ -26,7 +26,7 @@ public class AnalysisController {
     public SseEmitter stream(@Valid @RequestBody AnalysisRequest req) {
         SseEmitter emitter = new SseEmitter(300000L);
 
-        analysisService.analyze(req.getFiles(), req.getProjectName())
+        analysisService.analyze(req.getFiles(), req.getProjectName(), req.getMode())
             .subscribe(
                 event -> {
                     try {

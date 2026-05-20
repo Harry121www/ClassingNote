@@ -20,6 +20,17 @@
       @deselectAll="store.deselectAll"
     />
 
+    <div v-if="store.phase === 'idle' && store.fileTree.length > 0" class="project-analyzer__mode">
+      <span class="project-analyzer__mode-label">分析模式：</span>
+      <el-radio-group v-model="store.analysisMode">
+        <el-radio value="ARCHITECTURE">项目架构分析</el-radio>
+        <el-radio value="KNOWLEDGE">知识点提取</el-radio>
+      </el-radio-group>
+      <p class="project-analyzer__mode-hint">
+        {{ store.analysisMode === 'KNOWLEDGE' ? '提取项目中涵盖的技术知识点，并给出后续学习建议，适合课堂教学' : '逐文件 → 逐包 → 项目总览的架构分析报告' }}
+      </p>
+    </div>
+
     <div v-if="store.phase === 'idle' && store.fileTree.length > 0" class="project-analyzer__actions">
       <el-button type="primary" :disabled="store.getSelectedFiles().length === 0"
         @click="startAnalysis">
@@ -80,7 +91,7 @@ export default {
       if (selectedFiles.length === 0) return
       store.resetAnalysis()
 
-      const { response, controller } = streamAnalysis(selectedFiles, store.projectName)
+      const { response, controller } = streamAnalysis(selectedFiles, store.projectName, store.analysisMode)
 
       try {
         const r = await response
@@ -164,6 +175,22 @@ export default {
 .project-analyzer__header h3 {
   margin: 0;
   font-size: 18px;
+}
+.project-analyzer__mode {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border-radius: 8px;
+}
+.project-analyzer__mode-label {
+  font-size: 14px;
+  font-weight: 500;
+  margin-right: 12px;
+}
+.project-analyzer__mode-hint {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
 }
 .project-analyzer__actions {
   margin-top: 16px;
