@@ -9,27 +9,34 @@ if not exist "%JDK17%\bin\java.exe" (
     exit /b 1
 )
 
-set JAVAFX_SDK=%~dp0javafx-sdk-17.0.6
-set JAVAFX_JMODS=%~dp0javafx-jmods-17.0.6
+:: JavaFX on D drive to avoid C drive space issues
+set JAVAFX_ROOT=D:\ClassNoteDeps\javafx
+if not exist "%JAVAFX_ROOT%" mkdir "%JAVAFX_ROOT%"
+set JAVAFX_SDK=%JAVAFX_ROOT%\javafx-sdk-17.0.6
+set JAVAFX_JMODS=%JAVAFX_ROOT%\javafx-jmods-17.0.6
+set DOWNLOAD_TMP=D:\ClassNoteDeps\tmp
+if not exist "%DOWNLOAD_TMP%" mkdir "%DOWNLOAD_TMP%"
 
 if not exist "%JAVAFX_SDK%\lib\javafx.web.jar" (
-    echo JavaFX SDK not found! Downloading...
-    powershell -Command "Invoke-WebRequest -Uri 'https://download2.gluonhq.com/openjfx/17.0.6/openjfx-17.0.6_windows-x64_bin-sdk.zip' -OutFile '%TEMP%\javafx-sdk.zip'"
-    powershell -Command "Expand-Archive -Path '%TEMP%\javafx-sdk.zip' -DestinationPath '%~dp0' -Force"
-    del "%TEMP%\javafx-sdk.zip"
+    echo JavaFX SDK not found! Downloading to D:\ClassNoteDeps...
+    powershell -Command "Invoke-WebRequest -Uri 'https://download2.gluonhq.com/openjfx/17.0.6/openjfx-17.0.6_windows-x64_bin-sdk.zip' -OutFile '%DOWNLOAD_TMP%\javafx-sdk.zip'"
+    powershell -Command "Expand-Archive -Path '%DOWNLOAD_TMP%\javafx-sdk.zip' -DestinationPath '%JAVAFX_ROOT%' -Force"
+    del "%DOWNLOAD_TMP%\javafx-sdk.zip"
 )
 if not exist "%JAVAFX_JMODS%\javafx.web.jmod" (
-    echo JavaFX JMODs not found! Downloading...
-    powershell -Command "Invoke-WebRequest -Uri 'https://download2.gluonhq.com/openjfx/17.0.6/openjfx-17.0.6_windows-x64_bin-jmods.zip' -OutFile '%TEMP%\javafx-jmods.zip'"
-    powershell -Command "Expand-Archive -Path '%TEMP%\javafx-jmods.zip' -DestinationPath '%~dp0' -Force"
-    ren "%~dp0javafx-jmods-17.0.6" "javafx-jmods-17.0.6" 2>nul
-    del "%TEMP%\javafx-jmods.zip"
+    echo JavaFX JMODs not found! Downloading to D:\ClassNoteDeps...
+    powershell -Command "Invoke-WebRequest -Uri 'https://download2.gluonhq.com/openjfx/17.0.6/openjfx-17.0.6_windows-x64_bin-jmods.zip' -OutFile '%DOWNLOAD_TMP%\javafx-jmods.zip'"
+    powershell -Command "Expand-Archive -Path '%DOWNLOAD_TMP%\javafx-jmods.zip' -DestinationPath '%JAVAFX_ROOT%' -Force"
+    del "%DOWNLOAD_TMP%\javafx-jmods.zip"
 )
 
 echo [1/4] Building custom JRE with JavaFX...
 set JRE_OUT=%~dp0target\javafx-jre
+
+echo [1/4] Building custom JRE with JavaFX...
+set JRE_OUT=%~dp0target\javafx-jre
 if exist "%JRE_OUT%" rmdir /s /q "%JRE_OUT%"
-"%JDK17%\bin\jlink.exe" --output "%JRE_OUT%" --module-path "%JDK17%\jmods;%JAVAFX_JMODS%" --add-modules java.base,java.desktop,java.logging,java.management,java.naming,java.sql,java.xml,jdk.unsupported,javafx.web,javafx.controls
+"%JDK17%\bin\jlink.exe" --output "%JRE_OUT%" --module-path "%JDK17%\jmods;%JAVAFX_JMODS%" --add-modules java.base,java.compiler,java.datatransfer,java.desktop,java.instrument,java.logging,java.management,java.management.rmi,java.naming,java.net.http,java.prefs,java.rmi,java.scripting,java.se,java.security.jgss,java.security.sasl,java.sql,java.transaction.xa,java.xml,java.xml.crypto,jdk.unsupported,jdk.crypto.ec,jdk.jartool,jdk.net,jdk.zipfs,javafx.web,javafx.controls --bind-services
 if %errorlevel% neq 0 ( echo jlink failed! & pause & exit /b 1 )
 
 echo [2/4] Building frontend...
