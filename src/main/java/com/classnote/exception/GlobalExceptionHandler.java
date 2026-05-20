@@ -1,6 +1,7 @@
 package com.classnote.exception;
 
 import com.classnote.common.ApiResponse;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +21,16 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.CONFLICT)
     public ApiResponse<?> handleDuplicate(DuplicateResourceException e) {
         return ApiResponse.error(409, e.getMessage());
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public ApiResponse<?> handleDataIntegrity(DataIntegrityViolationException e) {
+        String msg = e.getMostSpecificCause().getMessage();
+        if (msg != null && msg.contains("uk_name")) {
+            return ApiResponse.error(409, "标签名已存在");
+        }
+        return ApiResponse.error(409, "数据已存在，无法重复创建");
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
