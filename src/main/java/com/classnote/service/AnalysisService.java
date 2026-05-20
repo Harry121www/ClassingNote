@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -29,38 +28,38 @@ public class AnalysisService {
     }
 
     public Flux<AnalysisEvent> analyze(List<FileItem> files, String projectName) {
-        LLMService llm = llmFactory.getService();
+        return Flux.defer(() -> {
+            LLMService llm = llmFactory.getService();
 
-        List<FileItem> validFiles = files.stream()
-            .filter(f -> {
-                String name = f.getPath().toLowerCase();
-                for (String ext : TEXT_EXTENSIONS) {
-                    if (name.endsWith(ext)) return true;
-                }
-                return false;
-            })
-            .collect(Collectors.toList());
+            List<FileItem> validFiles = files.stream()
+                .filter(f -> {
+                    String name = f.getPath().toLowerCase();
+                    for (String ext : TEXT_EXTENSIONS) {
+                        if (name.endsWith(ext)) return true;
+                    }
+                    return false;
+                })
+                .collect(Collectors.toList());
 
-        if (validFiles.isEmpty()) {
-            return Flux.just(new AnalysisEvent("ERROR", null, "No valid text files found", true));
-        }
+            if (validFiles.isEmpty()) {
+                return Flux.just(new AnalysisEvent("ERROR", null, "No valid text files found", true));
+            }
 
-        Map<String, List<FileItem>> grouped = validFiles.stream()
-            .collect(Collectors.groupingBy(f -> {
-                String path = f.getPath().replace('\\', '/');
-                int lastSlash = path.lastIndexOf('/');
-                return lastSlash > 0 ? path.substring(0, lastSlash) : "root";
-            }));
+            Map<String, List<FileItem>> grouped = validFiles.stream()
+                .collect(Collectors.groupingBy(f -> {
+                    String path = f.getPath().replace('\\', '/');
+                    int lastSlash = path.lastIndexOf('/');
+                    return lastSlash > 0 ? path.substring(0, lastSlash) : "root";
+                }));
 
-        String project = projectName != null ? projectName : "the project";
+            String project = projectName != null ? projectName : "the project";
 
-        return Flux.concat(
-            phasePerFile(llm, validFiles),
-            phasePackage(llm, grouped),
-            phaseOverview(llm, project, grouped.keySet())
-        ).concatWith(Flux.just(new AnalysisEvent("DONE", null, "", true)))
-        .timeout(Duration.ofSeconds(120))
-        .retry(2);
+            return Flux.concat(
+                phasePerFile(llm, validFiles),
+                phasePackage(llm, grouped),
+                phaseOverview(llm, project, grouped.keySet())
+            ).concatWith(Flux.just(new AnalysisEvent("DONE", null, "", true)));
+        });
     }
 
     private Flux<AnalysisEvent> phasePerFile(LLMService llm, List<FileItem> files) {
