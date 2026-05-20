@@ -19,7 +19,8 @@
       <el-select v-model="selectedTagIds" placeholder="标签" style="width:160px;" size="small" multiple>
         <el-option v-for="tag in tagStore.tags" :key="tag.id" :label="tag.name" :value="tag.id" />
       </el-select>
-      <el-color-picker v-model="textColor" size="small" show-alpha @change="insertColor" />
+      <el-color-picker v-model="textColor" size="small" />
+      <el-button size="small" @click="applyColor" :disabled="!textColor">文字颜色</el-button>
       <el-button @click="uploadRef.click()" size="small">
         <el-icon><Upload /></el-icon> 附件
       </el-button>
@@ -37,7 +38,7 @@
 
     <!-- Edit content -->
     <div v-if="viewMode === 'edit'" style="flex:1; display:flex; overflow:hidden;">
-      <MarkdownEditor v-model="content" :font-size="prefStore.editorFontSize"
+      <MarkdownEditor ref="editorRef" v-model="content" :font-size="prefStore.editorFontSize"
         style="flex:1; border-right:1px solid var(--border-color);" />
       <MarkdownPreview :content="content" style="flex:1;" />
     </div>
@@ -93,9 +94,20 @@ export default {
         .map(t => t.name)
     })
 
-    const insertColor = () => {
-      if (textColor.value) {
-        content.value += `<span style="color:${textColor.value};">文字</span>`
+    const editorRef = ref(null)
+
+    const applyColor = () => {
+      if (!textColor.value || !editorRef.value) return
+      const sel = editorRef.value.getSelection()
+      if (sel && sel.text) {
+        editorRef.value.wrapSelection(
+          `<span style="color:${textColor.value};">`,
+          '</span>'
+        )
+      } else {
+        editorRef.value.insertAtCursor(
+          `<span style="color:${textColor.value};">文字</span>`
+        )
       }
     }
 
@@ -173,7 +185,7 @@ export default {
 
     return {
       title, content, notebookId, selectedTagIds, uploadRef, viewMode, textColor,
-      canSave, notebookName, selectedTagNames, insertColor,
+      canSave, notebookName, selectedTagNames, editorRef, applyColor,
       save, onFileUpload,
       router, notebookStore, tagStore, prefStore, noteStore
     }
