@@ -27,7 +27,7 @@ echo [3/4] Creating app image with bundled JRE...
 set OUTPUT=%~dp0dist\ClassNote-App
 if exist "%OUTPUT%" rmdir /s /q "%OUTPUT%"
 
-"%JPACKAGE%" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --main-class com.classnote.ClassNoteApplication --type app-image --dest "%OUTPUT%" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0 --win-console
+"%JPACKAGE%" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0 --win-console
 
 if %errorlevel% neq 0 (
     echo jpackage failed! Make sure JDK 17 is installed.
