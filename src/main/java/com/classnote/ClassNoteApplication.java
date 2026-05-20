@@ -12,15 +12,13 @@ import java.net.URI;
 public class ClassNoteApplication {
     public static void main(String[] args) {
         System.setProperty("java.awt.headless", "false");
+        DesktopWindow.show();
         SpringApplication.run(ClassNoteApplication.class, args);
     }
 
     @EventListener(ApplicationReadyEvent.class)
-    public void openWindow() {
-        System.out.println("Starting desktop window...");
-        new Thread(() -> {
-            try { Thread.sleep(1500); } catch (Exception e) { }
-            DesktopWindow.launch("http://localhost:8080");
-        }).start();
+    public void onReady() {
+        System.out.println("Server ready, navigating to app...");
+        DesktopWindow.navigateTo("http://localhost:8080");
     }
 }
