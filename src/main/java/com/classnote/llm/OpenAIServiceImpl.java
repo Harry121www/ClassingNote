@@ -71,11 +71,9 @@ public class OpenAIServiceImpl implements LLMService {
                 .bodyValue(body)
                 .retrieve()
                 .bodyToFlux(String.class)
-                .flatMap(chunk -> {
-                    // A chunk may be one line, partial line, or multiple lines
-                    return Flux.fromArray(chunk.split("\n", -1));
-                })
-                .map(line -> line.trim())
+                .flatMap(chunk -> Flux.fromArray(chunk.split("\n", -1)))
+                .map(line -> line.replace("\r", "").trim())
+                .doOnNext(line -> { if (!line.isEmpty()) log.info("RAW: {}", line.length() > 200 ? line.substring(0, 200) + "..." : line); })
                 .filter(line -> line.startsWith("data:") && line.length() > 5)
                 .map(line -> line.substring(5).trim())
                 .filter(payload -> !payload.isEmpty() && !payload.equals("[DONE]"))
@@ -88,12 +86,13 @@ public class OpenAIServiceImpl implements LLMService {
                             if (delta != null) {
                                 JsonNode content = delta.get("content");
                                 if (content != null && !content.asText().isEmpty()) {
+                                    log.info("TEXT: {}", content.asText());
                                     sink.next(content.asText());
                                 }
                             }
                         }
                     } catch (Exception e) {
-                        // JSON may span chunks — discard, not much we can do
+                        log.warn("JSON parse fail (first 200 chars): {}", payload.length() > 200 ? payload.substring(0, 200) : payload);
                     }
                 });
     }
