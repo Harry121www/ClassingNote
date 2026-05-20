@@ -1,28 +1,18 @@
 <template>
-  <el-dialog v-model="visible" title="保存分析结果" width="500px" @close="handleClose">
-    <el-form :model="form" label-width="80px">
-      <el-form-item label="保存方式">
-        <el-radio-group v-model="form.saveType">
-          <el-radio value="note">存为笔记</el-radio>
-          <el-radio value="knowledge">存为知识库</el-radio>
-          <el-radio value="both">两者都存</el-radio>
-        </el-radio-group>
-      </el-form-item>
+  <el-dialog v-model="visible" title="保存分析结果" width="400px" @close="handleClose">
+    <el-form :model="form" label-width="60px">
       <el-form-item label="标题">
         <el-input v-model="form.title" placeholder="输入标题" />
       </el-form-item>
-      <el-form-item v-if="form.saveType !== 'knowledge'" label="笔记本">
+      <el-form-item label="笔记本">
         <el-select v-model="form.notebookId" placeholder="选择笔记本" style="width:100%">
           <el-option v-for="nb in notebooks" :key="nb.id" :label="nb.name" :value="nb.id" />
         </el-select>
       </el-form-item>
-      <el-form-item label="项目名">
-        <el-input v-model="form.projectName" placeholder="项目名称" />
-      </el-form-item>
     </el-form>
     <template #footer>
       <el-button @click="visible = false">取消</el-button>
-      <el-button type="primary" @click="handleSave" :loading="saving">保存</el-button>
+      <el-button type="primary" @click="handleSave" :loading="saving">存为笔记</el-button>
     </template>
   </el-dialog>
 </template>
@@ -45,17 +35,14 @@ export default {
     const saving = ref(false)
     const notebooks = ref([])
     const form = ref({
-      saveType: 'note',
       title: '',
-      notebookId: '',
-      projectName: ''
+      notebookId: ''
     })
 
     watch(() => props.modelValue, (val) => {
       visible.value = val
       if (val) {
         form.value.title = (props.projectName || 'Project') + ' 分析报告'
-        form.value.projectName = props.projectName || ''
         loadNotebooks()
       }
     })

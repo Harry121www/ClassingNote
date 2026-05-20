@@ -65,7 +65,6 @@
 import { ref } from 'vue'
 import { useAnalysisStore } from '../stores/analysis'
 import { streamAnalysis } from '../api/analysis'
-import { knowledgeApi } from '../api/knowledge'
 import { noteApi } from '../api/notes'
 import FolderDropZone from '../components/analysis/FolderDropZone.vue'
 import FileTreeSelector from '../components/analysis/FileTreeSelector.vue'
@@ -127,25 +126,14 @@ export default {
       }
     }
 
-    async function handleSave({ saveType, title, notebookId, projectName, content }) {
+    async function handleSave({ title, notebookId, content }) {
       try {
-        if (saveType === 'note' || saveType === 'both') {
-          if (!notebookId) {
-            ElMessage.warning('请选择一个笔记本')
-            return
-          }
-          await noteApi.create({ title, content, notebookId })
-          ElMessage.success('已保存为笔记')
+        if (!notebookId) {
+          ElMessage.warning('请选择一个笔记本')
+          return
         }
-        if (saveType === 'knowledge' || saveType === 'both') {
-          await knowledgeApi.create({
-            title,
-            content,
-            projectName,
-            category: 'OVERVIEW'
-          })
-          ElMessage.success('已保存到知识库')
-        }
+        await noteApi.create({ title, content, notebookId })
+        ElMessage.success('已保存为笔记')
         showSaveDialog.value = false
       } catch (e) {
         ElMessage.error('保存失败')
