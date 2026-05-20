@@ -67,6 +67,8 @@ public class OpenAIServiceImpl implements LLMService {
                     }
                     return response.bodyToFlux(String.class);
                 })
+                .flatMap(chunk -> Flux.fromArray(chunk.split("\n")))
+                .map(line -> line.replace("\r", ""))
                 .filter(line -> line.startsWith("data: ") && !line.startsWith("data: [DONE]"))
                 .map(line -> {
                     try {
