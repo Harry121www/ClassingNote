@@ -18,8 +18,10 @@ cd /d "%~dp0frontend"
 call npm run build
 if %errorlevel% neq 0 ( echo Frontend build failed! & pause & exit /b 1 )
 
-echo [2/4] Building backend JAR (H2 profile)...
+echo [2/4] Building backend JAR with JDK 17 (H2 profile)...
 cd /d "%~dp0"
+set JAVA_HOME=%JDK17%
+set PATH=%JDK17%\bin;%PATH%
 call mvn clean package -DskipTests -P h2 -q
 if %errorlevel% neq 0 ( echo Backend build failed! & pause & exit /b 1 )
 
