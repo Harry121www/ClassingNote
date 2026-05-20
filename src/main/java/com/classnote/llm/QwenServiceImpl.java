@@ -2,24 +2,16 @@ package com.classnote.llm;
 
 import com.classnote.service.LLMConfigService;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 
 @Component
-public class QwenServiceImpl implements LLMService {
-
-    private final OpenAIServiceImpl openAI;
+public class QwenServiceImpl extends OpenAIServiceImpl {
 
     public QwenServiceImpl(LLMConfigService configService) {
-        this.openAI = new OpenAIServiceImpl(configService);
+        super(configService, "https://dashscope.aliyuncs.com/compatible-mode");
     }
 
     @Override
     public LLMProvider getProvider() {
         return LLMProvider.QWEN;
-    }
-
-    @Override
-    public Flux<String> streamChat(String systemPrompt, String userPrompt) {
-        return openAI.streamChat(systemPrompt, userPrompt);
     }
 }

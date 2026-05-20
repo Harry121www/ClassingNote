@@ -15,10 +15,16 @@ import java.util.Map;
 public class OpenAIServiceImpl implements LLMService {
 
     private final LLMConfigService configService;
+    private final String defaultBaseUrl;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     public OpenAIServiceImpl(LLMConfigService configService) {
+        this(configService, "https://api.openai.com");
+    }
+
+    protected OpenAIServiceImpl(LLMConfigService configService, String defaultBaseUrl) {
         this.configService = configService;
+        this.defaultBaseUrl = defaultBaseUrl;
     }
 
     @Override
@@ -31,7 +37,11 @@ public class OpenAIServiceImpl implements LLMService {
         LLMConfigEntity config = configService.get();
         String baseUrl = config.getBaseUrl();
         if (baseUrl == null || baseUrl.isBlank()) {
-            baseUrl = "https://api.openai.com";
+            baseUrl = this.defaultBaseUrl;
+        }
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return Flux.error(new IllegalStateException(
+                "未配置 Base URL，请在设置中填写 API 地址"));
         }
 
         Map<String, Object> body = Map.of(

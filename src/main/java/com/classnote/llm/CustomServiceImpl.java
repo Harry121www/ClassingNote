@@ -2,24 +2,16 @@ package com.classnote.llm;
 
 import com.classnote.service.LLMConfigService;
 import org.springframework.stereotype.Component;
-import reactor.core.publisher.Flux;
 
 @Component
-public class CustomServiceImpl implements LLMService {
-
-    private final OpenAIServiceImpl openAI;
+public class CustomServiceImpl extends OpenAIServiceImpl {
 
     public CustomServiceImpl(LLMConfigService configService) {
-        this.openAI = new OpenAIServiceImpl(configService);
+        super(configService, "");
     }
 
     @Override
     public LLMProvider getProvider() {
         return LLMProvider.CUSTOM;
-    }
-
-    @Override
-    public Flux<String> streamChat(String systemPrompt, String userPrompt) {
-        return openAI.streamChat(systemPrompt, userPrompt);
     }
 }
