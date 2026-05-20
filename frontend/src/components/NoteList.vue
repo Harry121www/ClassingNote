@@ -26,13 +26,16 @@
       </el-table-column>
     </el-table>
 
-    <div v-if="selectedIds.length" style="padding:8px 0; display:flex; gap:8px;">
-      <el-button type="primary" size="small" @click="startSummary">
+    <div style="padding:8px 0; display:flex; gap:8px; align-items:center;">
+      <el-button type="primary" size="small" @click="startSummary" :disabled="!selectedIds.length">
         生成阶段总结 ({{ selectedIds.length }})
       </el-button>
-      <el-button type="danger" size="small" @click="batchDelete">
+      <el-button type="danger" size="small" @click="batchDelete" :disabled="!selectedIds.length">
         批量删除 ({{ selectedIds.length }})
       </el-button>
+      <span v-if="!selectedIds.length" style="font-size:12px; color:var(--text-secondary);">
+        勾选左侧复选框后可批量操作
+      </span>
     </div>
 
     <el-pagination v-if="noteStore.total > 0" style="margin-top:16px; justify-content:center;"
