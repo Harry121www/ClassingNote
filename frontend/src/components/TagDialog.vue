@@ -7,7 +7,7 @@
       </el-form-item>
       <el-form-item label="颜色">
         <el-color-picker v-model="form.color" />
-        <span style="margin-left:8px; color:#909399;">{{ form.color }}</span>
+        <span style="margin-left:8px; color:var(--text-secondary);">{{ form.color }}</span>
       </el-form-item>
     </el-form>
     <template #footer>

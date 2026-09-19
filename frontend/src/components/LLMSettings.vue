@@ -63,7 +63,7 @@ export default {
     })
 
     function onApiKeyFocus() {
-      if (!keyEdited.value && maskedKey.value) {
+      if (!keyEdited.value) {
         form.value.apiKey = ''
         keyEdited.value = true
       }

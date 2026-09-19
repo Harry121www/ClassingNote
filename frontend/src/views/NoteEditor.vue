@@ -25,6 +25,8 @@
         <el-icon><Upload /></el-icon> 附件
       </el-button>
       <input ref="uploadRef" type="file" hidden @change="onFileUpload" />
+      <el-button @click="undo" size="small" title="撤销 (Ctrl+Z)">↩</el-button>
+      <el-button @click="redo" size="small" title="重做 (Ctrl+Shift+Z)">↪</el-button>
       <div style="flex:1;" />
       <el-button @click="viewMode = 'preview'" size="small">预览</el-button>
       <el-button @click="save" type="primary" size="small" :disabled="!canSave">保存</el-button>
@@ -111,6 +113,9 @@ export default {
       }
     }
 
+    const undo = () => { editorRef.value?.undo() }
+    const redo = () => { editorRef.value?.redo() }
+
     const save = async () => {
       const data = {
         title: title.value.trim(),
@@ -185,7 +190,7 @@ export default {
 
     return {
       title, content, notebookId, selectedTagIds, uploadRef, viewMode, textColor,
-      canSave, notebookName, selectedTagNames, editorRef, applyColor,
+      canSave, notebookName, selectedTagNames, editorRef, applyColor, undo, redo,
       save, onFileUpload,
       router, notebookStore, tagStore, prefStore, noteStore
     }

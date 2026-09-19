@@ -61,14 +61,21 @@ call mvn clean package -DskipTests -P h2 -q
 if %errorlevel% neq 0 ( echo Backend build failed! & pause & exit /b 1 )
 
 echo [4/4] Creating EXE with JavaFX desktop window...
+:: Kill running ClassNote to avoid file-lock errors
+taskkill /f /im ClassNote.exe >nul 2>&1
 set OUTPUT=%~dp0dist\ClassNote-App
 if exist "%OUTPUT%" rmdir /s /q "%OUTPUT%"
 
-"%JDK17%\bin\jpackage.exe" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --runtime-image "%~dp0dist\javafx-jre" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --app-version 1.0.0
+"%JDK17%\bin\jpackage.exe" --name ClassNote --input target --main-jar classnote-local-1.0.0.jar --type app-image --dest "%OUTPUT%" --runtime-image "%~dp0dist\javafx-jre" --icon "%~dp0ClassNote.ico" --java-options "-Dspring.profiles.active=h2 -Djava.awt.headless=false" --java-options "-Dprism.lcdtext=false" --java-options "-Dprism.text=t2k" --app-version 1.0.0
 if %errorlevel% neq 0 ( echo jpackage failed! & pause & exit /b 1 )
 
 echo.
 echo === Done ===
 echo EXE: %OUTPUT%\ClassNote\ClassNote.exe
+
+echo [5/5] Creating distribution zip...
+set ZIP_OUT=%~dp0dist\ClassNote.zip
+if exist "%ZIP_OUT%" del /q "%ZIP_OUT%"
+powershell -Command "Compress-Archive -Path '%OUTPUT%\ClassNote' -DestinationPath '%ZIP_OUT%' -Force"
 echo.
 pause

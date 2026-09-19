@@ -14,7 +14,7 @@
       <el-button type="primary" @click="search" style="margin-left:8px;">搜索</el-button>
     </div>
 
-    <div v-if="results.length === 0 && searched" style="text-align:center; color:#909399; padding:60px;">
+    <div v-if="results.length === 0 && searched" style="text-align:center; color:var(--text-secondary); padding:60px;">
       未找到匹配的笔记
     </div>
 
@@ -23,13 +23,13 @@
       <el-card shadow="hover">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <h4 v-html="note.title" style="margin:0;"></h4>
-          <span style="color:#909399; font-size:12px;">{{ note.notebookName }}</span>
+          <span style="color:var(--text-secondary); font-size:12px;">{{ note.notebookName }}</span>
         </div>
-        <p v-html="note.plainText" style="margin:8px 0 0; color:#666; font-size:14px;"></p>
+        <p v-html="note.plainText" style="margin:8px 0 0; color:var(--text-muted); font-size:14px;"></p>
         <div style="margin-top:8px;">
           <el-tag v-for="tag in note.tags" :key="tag.id" :color="tag.color"
             size="small" style="color:#fff; margin-right:4px;">{{ tag.name }}</el-tag>
-          <span style="color:#909399; font-size:12px; margin-left:8px;">
+          <span style="color:var(--text-secondary); font-size:12px; margin-left:8px;">
             {{ new Date(note.updatedAt).toLocaleString('zh-CN') }}
           </span>
         </div>

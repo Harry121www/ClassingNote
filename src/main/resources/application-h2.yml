@@ -5,7 +5,7 @@ spring:
   main:
     lazy-initialization: true
   datasource:
-    url: jdbc:h2:file:~/.classnote/database;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE
+    url: jdbc:h2:file:./data/database;MODE=MySQL;DB_CLOSE_DELAY=-1;AUTO_RECONNECT=TRUE
     username: sa
     password:
     driver-class-name: org.h2.Driver
@@ -23,5 +23,5 @@ spring:
 
 app:
   version: 1.0.0
-  data-directory: ~/.classnote
-  attachment-root-path: ~/classnote-files
+  data-directory: ./data
+  attachment-root-path: ./classnote-files

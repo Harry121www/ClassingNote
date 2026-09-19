@@ -22,5 +22,5 @@ spring:
 
 app:
   version: 1.0.0
-  data-directory: ~/.classnote
-  attachment-root-path: ~/classnote-files
+  data-directory: ./data
+  attachment-root-path: ./classnote-files

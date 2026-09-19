@@ -30,10 +30,24 @@ objShell.Run """" & javaPath & """ -jar """ & jarPath & """ --spring.profiles.ac
 ' Wait a few seconds for server to start
 WScript.Sleep 5000
 
-' Try to open Chrome app mode
-On Error Resume Next
-objShell.Run "cmd /c start chrome --app=http://localhost:8080 --start-maximized", 0, False
-If Err.Number <> 0 Then
-    objShell.Run "cmd /c start msedge --app=http://localhost:8080 --start-maximized", 0, False
+' Find browser executable: Chrome > Edge > default
+Function FindBrowser(paths)
+    Dim pfx, p
+    pfx = Array("%ProgramFiles%", "%ProgramFiles(x86)%")
+    For i = 0 To UBound(paths)
+        For Each pfxItem In pfx
+            p = objShell.ExpandEnvironmentStrings(pfxItem) & paths(i)
+            If objFSO.FileExists(p) Then FindBrowser = p : Exit Function
+        Next
+    Next
+    FindBrowser = ""
+End Function
+
+Dim browserExe
+browserExe = FindBrowser(Array("\Google\Chrome\Application\chrome.exe", "\Microsoft\Edge\Application\msedge.exe"))
+
+If browserExe <> "" Then
+    objShell.Run "cmd /c start """" """ & browserExe & """ --app=http://localhost:8080 --start-maximized", 0, False
+Else
+    objShell.Run "cmd /c start http://localhost:8080", 0, False
 End If
-On Error Goto 0

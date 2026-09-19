@@ -28,11 +28,11 @@ export const usePreferenceStore = defineStore('preference', {
     },
     toggleTheme() {
       this.theme = this.theme === 'dark' ? 'light' : 'dark'
-      document.body.className = this.theme
+      document.documentElement.classList.toggle('dark', this.theme === 'dark')
       preferenceApi.update({ theme: this.theme }).catch(() => {})
     },
     applyTheme() {
-      document.body.className = this.theme
+      document.documentElement.classList.toggle('dark', this.theme === 'dark')
     }
   }
 })

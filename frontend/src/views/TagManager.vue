@@ -7,7 +7,7 @@
       </el-button>
     </div>
 
-    <div v-if="tagStore.tags.length === 0" style="text-align:center; color:#909399; padding:60px;">
+    <div v-if="tagStore.tags.length === 0" style="text-align:center; color:var(--text-secondary); padding:60px;">
       暂无标签，点击上方按钮创建
     </div>
 

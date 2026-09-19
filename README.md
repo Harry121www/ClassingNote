@@ -1,175 +1,170 @@
 # ClassNote Local
 
-本地优先的课堂笔记管理应用，基于 Spring Boot + MySQL + Vue 3 构建。
+本地课堂笔记管理应用，支持 Markdown 编辑、AI 分析。
 
-## 技术栈
+---
 
-| 技术 | 版本 | 说明 |
-|------|------|------|
-| Spring Boot | 2.7.18 | 后端框架，内嵌 Tomcat |
-| MySQL | 8.0 | 本地数据库 |
-| JPA/Hibernate | - | ORM，自动建表 |
-| Vue 3 | 3.4+ | 前端框架 |
-| Element Plus | 2.7+ | UI 组件库 |
-| Pinia | 2.1+ | 状态管理 |
-| Vue Router | 4.3+ | 前端路由 |
-| Axios | 1.7+ | HTTP 客户端 |
-| Marked | 12.0+ | Markdown 渲染 |
-| Vite | 5.2+ | 构建工具 |
+## 安装
 
-## 功能
+### 方式一：直接运行 EXE（推荐）
 
-- 笔记本管理（创建、编辑、删除，支持级联删除笔记及附件）
-- 笔记管理（Markdown 编辑 + 实时预览，单条/批量删除）
-- 标签管理（全局唯一标签，颜色标识，按标签筛选笔记）
-- 全文搜索（标题+内容匹配，关键词高亮，支持笔记本/标签组合筛选）
-- 附件管理（上传图片/文件，自动生成 Markdown 引用，清理无引用文件）
-- 数据导出（单篇笔记或整个笔记本导出为 Markdown 文件）
-- 草稿自动保存（可配置间隔，覆盖式保存最近一份）
-- 主题切换（浅色/深色模式，偏好持久化）
+从 `dist/` 目录获取打包好的程序，双击运行即可，无需安装任何依赖。
 
-## 环境要求
+### 方式二：从源码运行
 
-- JDK 11+
-- Maven 3.6+
-- MySQL 8.0+
-- Node.js 18+（前端开发）
-
-## 快速开始
-
-### 1. 创建数据库
-
-```sql
-CREATE DATABASE classnote DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-```
-
-或者直接执行项目中的 `schema.sql`：
+**环境要求：** JDK 11+、Maven 3.6+、MySQL 8.0+
 
 ```bash
-mysql -u root -p < schema.sql
-```
+# 1. 创建数据库
+mysql -u root -p -e "CREATE DATABASE classnote DEFAULT CHARACTER SET utf8mb4;"
 
-### 2. 配置数据库连接
+# 2. 修改数据库密码（编辑 src/main/resources/application.yml）
 
-编辑 `src/main/resources/application.yml`，修改数据库用户名和密码：
-
-```yaml
-spring:
-  datasource:
-    username: root
-    password: your_password
-```
-
-### 3. 启动后端
-
-```bash
-mvn spring-boot:run
-```
-
-后端启动后访问 `http://localhost:8080`，接口基础路径为 `/api/v1`。
-
-### 4. 启动前端（开发模式）
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
-前端开发服务器运行在 `http://localhost:5173`，API 请求自动代理到后端。
-
-### 5. 生产部署
-
-```bash
-cd frontend
-npm run build
-cd ..
-mvn package -DskipTests
+# 3. 构建运行
+mvn clean package -DskipTests
 java -jar target/classnote-local-1.0.0.jar
 ```
 
-前端静态资源打包到 `src/main/resources/static`，由 Spring Boot 直接提供服务，访问 `http://localhost:8080` 即可。
-
-## 项目结构
-
-```
-ClassingNote/
-├── pom.xml
-├── schema.sql                          # 建库建表 SQL
-├── src/main/java/com/classnote/
-│   ├── ClassNoteApplication.java       # 启动类
-│   ├── common/
-│   │   └── ApiResponse.java            # 统一响应封装
-│   ├── config/
-│   │   ├── WebConfig.java              # CORS + 静态资源配置
-│   │   └── FileStorageConfig.java       # 文件存储路径配置
-│   ├── entity/                         # JPA 实体
-│   ├── repository/                     # 数据访问层
-│   ├── dto/                            # 请求/响应 DTO
-│   ├── service/                        # 业务逻辑层
-│   ├── controller/                     # REST 控制器（25 个接口）
-│   └── exception/                      # 异常处理
-├── src/main/resources/
-│   └── application.yml                 # 应用配置
-├── frontend/                           # Vue 3 前端
-│   ├── src/
-│   │   ├── api/                        # API 封装
-│   │   ├── router/                     # 路由配置
-│   │   ├── stores/                     # Pinia 状态管理
-│   │   ├── views/                      # 页面视图
-│   │   ├── components/                 # 公共组件
-│   │   └── styles/                     # 全局样式
-│   └── vite.config.js
-└── docs/
-    ├── API-DOCUMENTATION.md            # API 接口文档
-    └── superpowers/plans/              # 实现计划
+不想装 MySQL？使用 H2 内存数据库：
+```bash
+mvn clean package -DskipTests -P h2
+java -jar target/classnote-local-1.0.0.jar
 ```
 
-## API 接口
+启动后自动打开桌面窗口，也可手动访问 `http://localhost:8080`。
 
-详见 [API-DOCUMENTATION.md](docs/API-DOCUMENTATION.md)，共 25 个 REST 接口：
+---
 
-- `POST /api/v1/notebooks` — 创建笔记本
-- `GET /api/v1/notebooks` — 笔记本列表
-- `GET /api/v1/notebooks/{id}` — 笔记本详情
-- `PUT /api/v1/notebooks/{id}` — 编辑笔记本
-- `DELETE /api/v1/notebooks/{id}` — 删除笔记本
-- `POST /api/v1/notes` — 新建笔记
-- `GET /api/v1/notes` — 笔记列表
-- `GET /api/v1/notes/{id}` — 笔记详情
-- `PUT /api/v1/notes/{id}` — 编辑笔记
-- `DELETE /api/v1/notes/{id}` — 删除笔记
-- `DELETE /api/v1/notes/batch` — 批量删除笔记
-- `POST /api/v1/tags` — 创建标签
-- `GET /api/v1/tags` — 标签列表
-- `PUT /api/v1/tags/{id}` — 编辑标签
-- `DELETE /api/v1/tags/{id}` — 删除标签
-- `GET /api/v1/search` — 全文搜索
-- `POST /api/v1/attachments/upload` — 上传附件
-- `GET /api/v1/notes/{noteId}/attachments` — 笔记附件列表
-- `DELETE /api/v1/attachments/{id}` — 删除附件
-- `GET /api/v1/export/notes/{id}` — 导出笔记
-- `GET /api/v1/export/notebooks/{id}` — 导出笔记本
-- `POST /api/v1/drafts` — 保存草稿
-- `GET /api/v1/drafts/latest` — 获取草稿
-- `DELETE /api/v1/drafts` — 清除草稿
-- `GET /api/v1/preferences` — 获取偏好
-- `PUT /api/v1/preferences` — 更新偏好
-- `GET /api/v1/config` — 应用配置
-- `GET /api/v1/config/db-status` — 数据库连接状态
+## 使用说明
 
-## 配置说明
+### 笔记本
 
-所有配置位于 `src/main/resources/application.yml`：
+- 点击侧边栏「笔记本」查看所有笔记本，括号内数字为笔记数量
+- 点击「新建笔记本」创建，支持设置名称和描述
+- 删除笔记本会同时删除其中所有笔记和附件
 
-| 配置项 | 默认值 | 说明 |
-|--------|--------|------|
-| `server.port` | 8080 | 服务端口 |
-| `spring.datasource.url` | `jdbc:mysql://localhost:3306/classnote` | 数据库连接 |
-| `spring.jpa.hibernate.ddl-auto` | `update` | 自动建表策略 |
-| `spring.servlet.multipart.max-file-size` | 50MB | 上传文件大小限制 |
-| `app.attachment-root-path` | `~/classnote-files` | 附件存储根目录 |
+### 笔记
 
-## 许可
+- 点击「全部笔记」查看所有笔记，支持按最近更新/创建时间/标题排序
+- 点击某个笔记本只查看该笔记本下的笔记
+- 点击「新建笔记」进入编辑器，选择所属笔记本，填写标题和内容
+- 笔记支持批量删除：勾选多条笔记后点击「批量删除」
 
-MIT
+### Markdown 编辑
+
+编辑器支持标准 Markdown 语法，工具栏提供快捷插入：
+
+| 按钮 | 功能 |
+|------|------|
+| B | **加粗** |
+| I | *斜体* |
+| H1/H2/H3 | 标题 |
+| 链接 | 插入超链接 |
+| 图片 | 插入图片 |
+| 代码块 | 插入代码 |
+| 列表 | 有序/无序列表 |
+| 引用 | 块引用 |
+
+右侧实时预览渲染效果。
+
+### 标签
+
+- 进入「管理标签」创建标签，可选择颜色
+- 编辑笔记时可添加/移除标签
+- 侧边栏「标签」下拉可按标签筛选笔记
+- 标签全局唯一，删除标签会自动从所有笔记中移除
+
+### 搜索
+
+- 侧边栏顶部搜索框输入关键词，回车搜索
+- 搜索范围：笔记标题 + 内容
+- 结果中关键词高亮显示
+- 可结合笔记本/标签筛选
+
+### 附件
+
+- 编辑笔记时点击「上传附件」，支持图片和文件（最大 50MB）
+- 上传后自动在编辑器中插入 Markdown 引用语法
+- 删除笔记时关联附件自动清理
+
+### 草稿
+
+- 编辑笔记时自动保存草稿（可配置间隔）
+- 关闭编辑器未保存的内容会保留为草稿
+- 下次新建笔记时可恢复上次草稿
+- 保存笔记后草稿自动清除
+
+### 导出
+
+- 笔记详情页点击「导出」，下载为 `.md` 文件
+- 笔记本页面点击「导出笔记本」，打包该笔记本下所有笔记为 Markdown 文件
+
+### 主题
+
+- 侧边栏底部按钮切换浅色/深色模式
+- 偏好自动保存，下次打开保持上次设置
+
+---
+
+## AI 功能
+
+### 配置 LLM
+
+1. 进入「设置 → LLM 配置」
+2. 选择厂商（OpenAI / Anthropic / Ollama / DeepSeek / Qwen / 自定义）
+3. 填入 API Key 和模型名称
+4. 点击保存
+
+支持的厂商：
+
+| 厂商 | 说明 |
+|------|------|
+| OpenAI | GPT 系列，需 API Key |
+| Anthropic | Claude 系列，需 API Key |
+| Ollama | 本地部署，填写本地地址即可 |
+| DeepSeek | DeepSeek 系列，需 API Key |
+| Qwen | 通义千问，需 API Key |
+| 自定义 | 任何兼容 OpenAI 格式的接口 |
+
+### 项目分析
+
+1. 进入侧边栏「项目分析」
+2. 拖拽文件夹到上传区域，或选择文件
+3. 选择分析模式：
+   - **项目架构分析**：逐文件 → 逐包 → 项目总览的架构报告
+   - **知识点提取**：提取技术知识点和学习建议，适合课堂教学
+4. 点击「开始分析」，实时查看 AI 输出
+5. 分析完成后可保存结果到知识库
+
+### 知识库
+
+- AI 分析结果可保存为知识条目
+- 支持按项目名称检索历史分析结果
+- 保存的知识条目可在笔记中引用
+
+---
+
+## 数据存储
+
+| 路径 | 说明 |
+|------|------|
+| `~/.classnote` | 应用数据（数据库、配置） |
+| `~/classnote-files` | 上传的附件文件 |
+
+可在「设置 → 数据存储」中修改存储路径。
+
+---
+
+## 常见问题
+
+**Q: 启动后白屏？**
+检查 Java 版本是否为 11+，运行 `java -version` 确认。
+
+**Q: 数据库连接失败？**
+确认 MySQL 服务已启动，检查 `application.yml` 中的用户名密码。
+
+**Q: 上传附件失败？**
+检查文件大小是否超过 50MB 限制，检查 `~/classnote-files` 目录是否有写入权限。
+
+**Q: AI 分析无响应？**
+检查 LLM 配置中的 API Key 是否正确，网络是否可达。Ollama 需确保本地服务已启动。
